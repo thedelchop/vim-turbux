@@ -24,6 +24,7 @@ call s:turbux_command_setting("rspec", "rspec")
 call s:turbux_command_setting("test_unit", "ruby -Itest")
 call s:turbux_command_setting("turnip", "rspec -rturnip")
 call s:turbux_command_setting("cucumber", "cucumber")
+call s:turbux_command_setting("jasmine", "guard-jasmine")
 call s:turbux_command_setting("prefix", "")
 " }}}1
 
@@ -52,6 +53,14 @@ endfunction
 function! s:prefix_for_test(file)
   if a:file =~# '_spec.rb$'
     return g:turbux_command_rspec
+  elseif a:file =~# '_spec.js.coffee$'
+    return g:turbux_command_jasmine
+  elseif a:file == 'spec'
+    return g:turbux_command_rspec
+  elseif a:file == 'features'
+    return g:turbux_command_cucumber
+  elseif a:file == 'spec/javascripts'
+    return g:turbux_command_jasmine
   elseif a:file =~# '\(\<test_.*\|_test\)\.rb$'
     return g:turbux_command_test_unit
   elseif a:file =~# '.feature$'
@@ -69,6 +78,8 @@ function! s:alternate_for_file(file)
   if exists('g:autoloaded_rails')
     let alt = s:first_readable_file(rails#buffer().related())
     if alt =~# '\(\<test_.*\|\(_test\|_spec\)\)\.rb$'
+      let related_file = alt
+    elseif alt =~# '.coffee$'
       let related_file = alt
     endif
   endif
@@ -141,7 +152,41 @@ function! s:find_test_name_in_quotes()
 endfunction
 "}}}1
 
+<<<<<<< HEAD
 " Public functions {{{1
+=======
+" Public functions
+function! RunCucumberSuiteInTmux() abort
+  let file = 'features'
+  let executable = s:command_for_file(file)
+
+  if !empty(executable)
+    let g:tmux_last_command = executable
+  endif
+  return s:send_test(executable)
+endfunction
+
+function! RunSpecSuiteInTmux() abort
+  let file = 'spec'
+  let executable = s:command_for_file(file)
+
+  if !empty(executable)
+    let g:tmux_last_command = executable
+  endif
+  return s:send_test(executable)
+endfunction
+
+function! RunJasmineSuiteInTmux() abort
+  let file = 'spec/javascripts'
+  let executable = s:command_for_file(file)
+
+  if !empty(executable)
+    let g:tmux_last_command = executable
+  endif
+  return s:send_test(executable)
+endfunction
+
+>>>>>>> eb4c566... Update with my own plugins
 function! SendTestToTmux(file) abort
   let executable = s:command_for_file(a:file)
   if !empty(executable)
@@ -177,6 +222,9 @@ endfunction
 " Mappings {{{1
 nnoremap <silent> <Plug>SendTestToTmux :<C-U>w \| call SendTestToTmux(expand('%'))<CR>
 nnoremap <silent> <Plug>SendFocusedTestToTmux :<C-U>w \| call SendFocusedTestToTmux(expand('%'), line('.'))<CR>
+nnoremap <silent> <Plug>RunCucumberSuiteInTmux :<C-U>w \| call RunCucumberSuiteInTmux()<CR>
+nnoremap <silent> <Plug>RunSpecSuiteInTmux :<C-U>w \| call RunSpecSuiteInTmux()<CR>
+nnoremap <silent> <Plug>RunJasmineSuiteInTmux :<C-U>w \| call RunJasmineSuiteInTmux()<CR>
 
 if !exists("g:no_turbux_mappings")
   nmap <leader>t <Plug>SendTestToTmux
