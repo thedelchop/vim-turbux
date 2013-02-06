@@ -152,9 +152,6 @@ function! s:find_test_name_in_quotes()
 endfunction
 "}}}1
 
-<<<<<<< HEAD
-" Public functions {{{1
-=======
 " Public functions
 function! RunCucumberSuiteInTmux() abort
   let file = 'features'
@@ -186,7 +183,6 @@ function! RunJasmineSuiteInTmux() abort
   return s:send_test(executable)
 endfunction
 
->>>>>>> eb4c566... Update with my own plugins
 function! SendTestToTmux(file) abort
   let executable = s:command_for_file(a:file)
   if !empty(executable)
