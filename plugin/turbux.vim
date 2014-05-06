@@ -25,6 +25,7 @@ call s:turbux_command_setting("test_unit", "ruby -Itest")
 call s:turbux_command_setting("turnip", "rspec -rturnip")
 call s:turbux_command_setting("cucumber", "cucumber")
 call s:turbux_command_setting("jasmine", "guard-jasmine")
+call s:turbux_command_setting("teaspoon", "teaspoon")
 call s:turbux_command_setting("prefix", "")
 " }}}1
 
@@ -54,13 +55,13 @@ function! s:prefix_for_test(file)
   if a:file =~# '_spec.rb$'
     return g:turbux_command_rspec
   elseif a:file =~# '_spec.js.coffee$'
-    return g:turbux_command_jasmine
+    return g:turbux_command_teaspoon
   elseif a:file == 'spec'
     return g:turbux_command_rspec
   elseif a:file == 'features'
     return g:turbux_command_cucumber
   elseif a:file == 'spec/javascripts'
-    return g:turbux_command_jasmine
+    return g:turbux_command_teaspoon
   elseif a:file =~# '\(\<test_.*\|_test\)\.rb$'
     return g:turbux_command_test_unit
   elseif a:file =~# '.feature$'
@@ -183,6 +184,16 @@ function! RunJasmineSuiteInTmux() abort
   return s:send_test(executable)
 endfunction
 
+function! RunTeaspoonSuiteInTmux() abort
+  let file = 'spec/javascripts'
+  let executable = s:command_for_file(file)
+
+  if !empty(executable)
+    let g:tmux_last_command = executable
+  endif
+  return s:send_test(executable)
+endfunction
+
 function! SendTestToTmux(file) abort
   let executable = s:command_for_file(a:file)
   if !empty(executable)
@@ -201,6 +212,8 @@ function! SendFocusedTestToTmux(file, line) abort
     else
       let focus = s:execute_test_by_name()
     endif
+  elseif s:prefix_for_test(a:file) == g:turbux_command_cucumber
+    let g:tmux_last_focused_cucumber_scenario = s:command_for_file(a:file).focus
   endif
 
   if !empty(s:prefix_for_test(a:file))
@@ -213,6 +226,13 @@ function! SendFocusedTestToTmux(file, line) abort
   endif
   return s:send_test(executable)
 endfunction
+
+function! RunLastCucumberScenarioInTmux() abort
+  let executable = g:tmux_last_focused_cucumber_scenario
+
+  return s:send_test(executable)
+endfunction
+
 " }}}1
 
 " Mappings {{{1
@@ -221,6 +241,7 @@ nnoremap <silent> <Plug>SendFocusedTestToTmux :<C-U>w \| call SendFocusedTestToT
 nnoremap <silent> <Plug>RunCucumberSuiteInTmux :<C-U>w \| call RunCucumberSuiteInTmux()<CR>
 nnoremap <silent> <Plug>RunSpecSuiteInTmux :<C-U>w \| call RunSpecSuiteInTmux()<CR>
 nnoremap <silent> <Plug>RunJasmineSuiteInTmux :<C-U>w \| call RunJasmineSuiteInTmux()<CR>
+nnoremap <silent> <Plug>RunLastCucumberScenarioInTmux :<C-U>w \| call RunLastCucumberScenarioInTmux()<CR>
 
 if !exists("g:no_turbux_mappings")
   nmap <leader>t <Plug>SendTestToTmux
